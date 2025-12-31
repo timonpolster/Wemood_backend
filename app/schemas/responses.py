@@ -1,0 +1,18 @@
+from datetime import datetime
+from typing import Optional, Any
+from pydantic import ConfigDict, Field
+from app.schemas.article import ArticleCreate
+from app.schemas.ai import ArticleAnalysisResult
+
+class ArticleResponse(ArticleCreate):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(..., description="Die eindeutige ID des Artikels in der Datenbank.")
+
+    ai_analysis: Optional[ArticleAnalysisResult] = Field(
+        None,
+        description="Die von der KI generierten Metadaten (Tags, Zusammenfassung, Sentiment)."
+    )
+
+    created_at: datetime = Field(..., description="Zeitstempel der Erstellung.")
+    updated_at: datetime = Field(..., description="Zeitstempel der letzten Änderung.")
