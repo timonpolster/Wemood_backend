@@ -1,59 +1,93 @@
 class PromptTemplates:
-    SYSTEM_PROMPT = """
-You are an expert psychologist and data scientist specializing in NLP analysis of psychological texts.
-Your task is to analyze the given text and extract structured metadata in strict JSON format.
 
-You must output valid JSON only. Do not add any conversational text, markdown formatting, or explanations outside the JSON object.
+    # --- SECTION 1: ARTICLE ANALYSIS PROMPTS ---
 
-Your analysis must include:
-1. 'tags': A list of 3-10 precise, domain-specific psychological keywords (in German) that best describe the content. Avoid generic terms.
-2. 'summary': A concise summary (max 2 sentences) in German.
-3. 'sentiment': One of ['positive', 'neutral', 'negative', 'concern']. Use 'concern' if the text indicates acute distress or risk.
-4. 'category': The primary category (e.g., 'Klinische Studie', 'Ratgeber', 'Therapie', 'Fallbericht').
-5. 'confidence_score': A float between 0.0 and 1.0 indicating your certainty about the tags and classification.
+    ARTICLE_SYSTEM_PROMPT = """
+You are an expert academic psychologist and data scientist.
+Your task is to analyze psychological texts (abstracts or full texts) and extract deep semantic metadata.
+
+Output Requirement:
+- You must output valid JSON only.
+- Identify 15 to 40 semantic tags. These must include specific disorders, therapies, chemicals (if applicable), and methodologies.
+- Classify the scientific disciplines (e.g., 'Klinische Psychologie', 'Neuropsychologie').
+- Determine the sentiment and category.
+
+Language:
+The output (summary, tags, disciplines) must be in German, regardless of the input language.
 """
 
-    FEW_SHOT_EXAMPLES = [
+    ARTICLE_FEW_SHOTS = [
         {
             "role": "user",
-            "content": """
-Titel: Wirksamkeit von SSRI bei mittelschwerer Depression
-Inhalt: Diese randomisierte kontrollierte Studie untersuchte über 12 Wochen die Effekte von Sertralin im Vergleich zu Placebo bei 200 Patienten. Die Ergebnisse zeigen eine signifikante Reduktion der HAM-D Scores in der Verumgruppe. Nebenwirkungen waren moderat.
-"""
+            "content": "Titel: Cognitive Behavioral Therapy for Insomnia (CBT-I) in Older Adults.\nInhalt: This study evaluates the efficacy of CBT-I in a sample of 150 adults aged 65+. Results indicate significant improvement in sleep latency and efficiency compared to the control group receiving sleep hygiene education alone."
         },
         {
             "role": "assistant",
             "content": """
 {
-  "tags": ["Depression", "SSRI", "Sertralin", "Pharmakotherapie", "Klinische Studie", "Wirksamkeit", "HAM-D"],
-  "summary": "Randomisierte Studie zur Wirksamkeit von Sertralin bei Depression, die eine signifikante Symptomverbesserung gegenüber Placebo belegt.",
-  "sentiment": "neutral",
-  "category": "Klinische Studie",
-  "confidence_score": 0.95
-}
-"""
-        },
-        {
-            "role": "user",
-            "content": """
-Titel: Panikattacken im Alltag bewältigen
-Inhalt: Wenn das Herz rast und der Atem stockt, hilft oft die 4-7-8 Atemtechnik. Setzen Sie sich hin, atmen Sie tief ein und versuchen Sie, sich auf fünf Dinge im Raum zu konzentrieren, die Sie sehen können. Diese Erdungsübung unterbricht den Angstkreislauf.
-"""
-        },
-        {
-            "role": "assistant",
-            "content": """
-{
-  "tags": ["Panikattacke", "Atemtechnik", "Selbsthilfe", "Erdungsübung", "Angstbewältigung", "4-7-8 Methode"],
-  "summary": "Ratgeber zur akuten Bewältigung von Panikattacken mittels Atemtechniken und Erdungsübungen.",
+  "tags": ["Insomnie", "Schlafstörungen", "Kognitive Verhaltenstherapie", "CBT-I", "Ältere Erwachsene", "Gerontopsychologie", "Schlaflatenz", "Schlafeffizienz", "Randomisierte kontrollierte Studie", "Schlafhygiene", "Nicht-medikamentöse Therapie", "Alter", "Wirksamkeitsstudie", "Klinische Intervention", "Psychotherapie"],
+  "scientific_disciplines": ["Klinische Psychologie", "Gerontopsychologie", "Schlafforschung"],
+  "summary": "Studie zur Wirksamkeit der Kognitiven Verhaltenstherapie bei Insomnie (CBT-I) bei über 65-Jährigen, die signifikante Verbesserungen gegenüber reiner Schlafhygiene-Schulung zeigt.",
   "sentiment": "positive",
-  "category": "Ratgeber",
+  "category": "Klinische Studie",
   "confidence_score": 0.98
 }
 """
         }
     ]
 
+    # --- SECTION 2: SEARCH QUERY ANALYSIS PROMPTS ---
+
+    SEARCH_SYSTEM_PROMPT = """
+You are an intelligent search assistant for a psychological database.
+Your goal is to interpret user queries, which may be vague, colloquial, or contain typos, and translate them into precise search tags.
+
+Output Requirement:
+- You must output valid JSON only.
+- Generate 2 to 8 precise search tags that maximize the chance of finding relevant professional literature.
+- Infer the user's intent (e.g., 'research', 'self_help', 'emergency').
+- If the query implies acute danger (suicide, self-harm), set intent to 'emergency'.
+- Correct typos in the 'corrected_query' field.
+
+Language:
+Tags must be in German.
+"""
+
+    SEARCH_FEW_SHOTS = [
+        {
+            "role": "user",
+            "content": "hilfee bei angs atacken"
+        },
+        {
+            "role": "assistant",
+            "content": """
+{
+  "tags": ["Angststörung", "Panikattacke", "Angstbewältigung", "Akuthilfe", "Symptome"],
+  "intent": "self_help",
+  "corrected_query": "Hilfe bei Angstattacken"
+}
+"""
+        },
+        {
+            "role": "user",
+            "content": "studien über wirksamkeit von ssri bei jugendlichen"
+        },
+        {
+            "role": "assistant",
+            "content": """
+{
+  "tags": ["SSRI", "Antidepressiva", "Jugendliche", "Adoleszenz", "Wirksamkeit", "Pharmakotherapie", "Depression"],
+  "intent": "research",
+  "corrected_query": "Studien über Wirksamkeit von SSRI bei Jugendlichen"
+}
+"""
+        }
+    ]
+
     @staticmethod
-    def build_analysis_prompt(title: str, content: str) -> str:
+    def build_article_prompt(title: str, content: str) -> str:
         return f"Titel: {title}\nInhalt: {content}"
+
+    @staticmethod
+    def build_search_prompt(query: str) -> str:
+        return f"Suchanfrage: {query}"
