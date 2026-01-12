@@ -10,3 +10,4 @@
 .venv
 alembic
 .env
+alembic.ini
