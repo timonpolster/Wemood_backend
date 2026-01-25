@@ -40,6 +40,7 @@ services:
       - .env
     environment:
       - POSTGRES_SERVER=db
+      - PYTHONPATH=/app
     volumes:
       - ./app:/app/app
       - ./alembic:/app/alembic
