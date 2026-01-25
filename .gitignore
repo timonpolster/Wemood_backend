@@ -8,6 +8,4 @@
 /dataSources.local.xml
 .idea
 .venv
-alembic
 .env
-alembic.ini
