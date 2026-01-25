@@ -4,6 +4,7 @@ from app.schemas.article import ArticleCreate
 from app.schemas.responses import ArticleResponse
 from app.api.dependencies import TaggingServiceDep, get_article_repo
 from app.repositories.article_repo import ArticleRepository
+from app.core.security import validate_api_key
 
 router = APIRouter()
 
@@ -12,7 +13,8 @@ router = APIRouter()
     response_model=ArticleResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create and Analyze a new Article",
-    description="Submits a new psychological article. Triggers the AI pipeline to generate tags, sentiment, and summary, then saves everything to the database."
+    description="Submits a new psychological article. Triggers the AI pipeline to generate tags, sentiment, and summary, then saves everything to the database. Requires X-API-Key header.",
+    dependencies=[Depends(validate_api_key)]  # Protected endpoint
 )
 async def create_article(
         article_in: ArticleCreate,

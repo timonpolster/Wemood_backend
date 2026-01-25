@@ -5,8 +5,12 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - "${DB_BIND_IP}:${DB_PORT}:5432"
+      - "${DB_BIND_IP:-127.0.0.1}:${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,7 +25,15 @@ services:
     build: .
     container_name: wemood_api
     restart: always
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        python -m app.backend_pre_start &&
+        echo 'Running database migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting server...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
     ports:
       - "8000:8000"
     env_file:
@@ -30,6 +42,7 @@ services:
       - POSTGRES_SERVER=db
     volumes:
       - ./app:/app/app
+      - ./alembic:/app/alembic
     depends_on:
       db:
         condition: service_healthy

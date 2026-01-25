@@ -4,33 +4,40 @@ from app.services.search_service import SearchService
 from app.schemas.ai import SearchAnalysisResult, UserIntentEnum
 from app.models.article import Article
 
+
 @pytest.fixture
 def mock_repo():
     return AsyncMock()
+
 
 @pytest.fixture
 def mock_mistral():
     return AsyncMock()
 
+
 @pytest.fixture
 def search_service(mock_repo, mock_mistral):
     return SearchService(article_repo=mock_repo, mistral_service=mock_mistral)
+
 
 @pytest.fixture
 def mock_article():
     article = Article(
         id=101,
         title="Umgang mit Panik",
-        content="Inhalt...",
+        content="Ein umfassender Inhalt über Panikattacken und deren Bewältigung im klinischen Kontext.",
         publication_date=None,
         ai_analysis={
-            "summary": "Ein Ratgebertext",
+            "summary": "Ein Ratgebertext über den Umgang mit Panikattacken.",
             "category": "Ratgeber",
             "sentiment": "neutral",
-            "tags": ["Panik", "Angst"]
+            "tags": ["Panik", "Angst", "Therapie", "Intervention", "Symptome",
+                     "Behandlung", "Kognition", "Emotion", "Verhalten", "Diagnose",
+                     "Prävention", "Forschung", "Methodik", "Evaluation", "Psychologie"]
         }
     )
     return article
+
 
 @pytest.mark.asyncio
 async def test_perform_search_standard_intent(
@@ -41,6 +48,7 @@ async def test_perform_search_standard_intent(
 ):
     query = "Was tun bei Angst?"
 
+    # SearchAnalysisResult requires 2-8 tags
     ai_result = SearchAnalysisResult(
         tags=["Angst", "Panik", "Symptome"],
         intent=UserIntentEnum.SELF_HELP,
@@ -66,6 +74,7 @@ async def test_perform_search_standard_intent(
         threshold=0.3
     )
 
+
 @pytest.mark.asyncio
 async def test_perform_search_emergency_intent(
         search_service,
@@ -74,6 +83,7 @@ async def test_perform_search_emergency_intent(
 ):
     query = "Ich will nicht mehr leben"
 
+    # SearchAnalysisResult requires 2-8 tags
     ai_result = SearchAnalysisResult(
         tags=["Suizid", "Krise", "Hilfe"],
         intent=UserIntentEnum.EMERGENCY,
@@ -93,6 +103,7 @@ async def test_perform_search_emergency_intent(
         threshold=0.2
     )
 
+
 @pytest.mark.asyncio
 async def test_perform_search_no_results(
         search_service,
@@ -101,8 +112,9 @@ async def test_perform_search_no_results(
 ):
     query = "Unbekanntes Thema"
 
+    # SearchAnalysisResult requires 2-8 tags (minimum 2!)
     ai_result = SearchAnalysisResult(
-        tags=["Unbekannt"],
+        tags=["Unbekannt", "Sonstiges"],  # Fixed: now has 2 tags
         intent=UserIntentEnum.RESEARCH,
         corrected_query=None
     )

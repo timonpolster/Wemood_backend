@@ -1,19 +1,19 @@
 from typing import List, Optional, Tuple
-from sqlalchemy import select, func, text, desc, case
+from sqlalchemy import select, func, text, desc, case, Float
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import cast
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY, TEXT
 
 from app.models.article import Article
 from app.schemas.article import ArticleCreate
-from app.schemas.ai import AIAnalysisResult
+from app.schemas.ai import ArticleAnalysisResult
 
 class ArticleRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
     async def create_with_ai_analysis(
-            self, article_in: ArticleCreate, ai_data: AIAnalysisResult
+            self, article_in: ArticleCreate, ai_data: ArticleAnalysisResult
     ) -> Article:
         db_obj = Article(
             title=article_in.title,
@@ -79,7 +79,3 @@ class ArticleRepository:
                 articles_with_scores.append((article, score))
 
         return articles_with_scores
-
-    # Import Float for casting inside the query definition above to ensure float division
-    # Note: Placed here logically, usually imported at top.
-    # In actual file: from sqlalchemy import Float should be at top.

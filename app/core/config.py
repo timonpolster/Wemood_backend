@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 from pydantic import computed_field, PostgresDsn
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "wemood_db"
 
     MISTRAL_API_KEY: str
+    ADMIN_API_KEY: Optional[str] = None  # Required in production, optional in dev
 
     @computed_field
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:

@@ -7,20 +7,27 @@ from app.api.dependencies import get_mistral_service
 from app.schemas.ai import ArticleAnalysisResult, SearchAnalysisResult, SentimentEnum, UserIntentEnum
 from app.core.config import settings
 
+
 @pytest.fixture
 def mock_mistral_service():
     mock = AsyncMock()
 
+    # ArticleAnalysisResult requires 15-40 unique tags
     article_result = ArticleAnalysisResult(
-        tags=["Integration", "Test", "System", "Database", "API"] * 4,
+        tags=[
+            "Integration", "Test", "System", "Database", "API",
+            "Backend", "Psychologie", "Analyse", "Forschung", "Methodik",
+            "Klinische Psychologie", "Diagnose", "Behandlung", "Therapie", "Intervention"
+        ],
         scientific_disciplines=["Informatik"],
-        summary="Integration Test Summary",
+        summary="Integration Test Summary für das Backend-System und die API-Endpunkte.",
         sentiment=SentimentEnum.POSITIVE,
         category="Test Data",
         confidence_score=0.99
     )
     mock.analyze_article.return_value = article_result
 
+    # SearchAnalysisResult requires 2-8 tags
     search_result = SearchAnalysisResult(
         tags=["Test", "Suche"],
         intent=UserIntentEnum.RESEARCH,
@@ -30,16 +37,17 @@ def mock_mistral_service():
 
     return mock
 
+
 @pytest.mark.asyncio
 async def test_create_article_flow(client: AsyncClient, mock_mistral_service):
     app.dependency_overrides[get_mistral_service] = lambda: mock_mistral_service
 
     payload = {
         "title": "Integration Test Article",
-        "content": "Dies ist ein sehr langer Text der unbedingt für den Integrationstest verwendet werden muss " * 10,
+        "content": "Dies ist ein sehr langer Text der unbedingt für den Integrationstest verwendet werden muss und viele Wörter enthalten sollte. " * 10,
         "source": "Pytest",
         "url": "http://localhost/test",
-        "publication_date": "2024-01-01T12:00:00"
+        "publication_date": "2024-01-01"  # Date format, not datetime
     }
 
     response = await client.post(f"{settings.API_V1_STR}/articles/", json=payload)
@@ -58,11 +66,13 @@ async def test_create_article_flow(client: AsyncClient, mock_mistral_service):
 
     app.dependency_overrides.clear()
 
+
 @pytest.mark.asyncio
 async def test_create_article_validation_error(client: AsyncClient):
+    # Content has >= 50 characters (passes Pydantic) but < 50 words (fails Service)
     payload = {
-        "title": "Short",
-        "content": "Too short",
+        "title": "Short Content Article",
+        "content": "This content is long enough in characters but has way too few words to pass the service validation check.",
         "source": "Pytest",
         "url": "http://localhost/fail"
     }
@@ -71,6 +81,7 @@ async def test_create_article_validation_error(client: AsyncClient):
 
     assert response.status_code == 422
     assert "Minimum 50 words" in response.json()["detail"]
+
 
 @pytest.mark.asyncio
 async def test_search_endpoint(client: AsyncClient, mock_mistral_service):
