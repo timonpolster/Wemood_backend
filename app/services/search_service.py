@@ -16,7 +16,7 @@ class SearchService:
 
         search_results = await self.article_repo.search_by_overlap_coefficient(
             query_tags=ai_analysis.tags,
-            threshold=0.2 if is_emergency else 0.3
+            threshold=0.1 if is_emergency else 0.1
         )
 
         formatted_results = self._format_search_response(search_results)

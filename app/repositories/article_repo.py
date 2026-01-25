@@ -1,5 +1,5 @@
 from typing import List, Optional, Tuple
-from sqlalchemy import select, func, text, desc, case, Float
+from sqlalchemy import select, func, text, desc, case, Float, literal_column
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import cast
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY, TEXT
@@ -39,42 +39,50 @@ class ArticleRepository:
         if not query_tags:
             return []
 
-        query_tags_set = set(query_tags)
-        query_len = len(query_tags_set)
+        query_tags_list = list(set(query_tags))
+        query_len = len(query_tags_list)
 
-        pre_filter = Article.ai_analysis["tags"].has_any(list(query_tags_set))
+        sql = text("""
+                   SELECT
+                       a.*,
+                       CASE
+                           WHEN LEAST(:query_len, jsonb_array_length(a.ai_analysis->'tags')) > 0
+                               THEN (
+                                        SELECT COUNT(*)::float
+                                        FROM jsonb_array_elements_text(a.ai_analysis->'tags') AS doc_tag
+                                        WHERE doc_tag = ANY(:query_tags)
+                                    ) / LEAST(:query_len, jsonb_array_length(a.ai_analysis->'tags'))::float
+                    ELSE 0.0
+                   END AS overlap_score
+            FROM articles a
+            WHERE a.ai_analysis->'tags' ?| :query_tags
+            ORDER BY overlap_score DESC
+            LIMIT :limit
+                   """)
 
-        tags_unnested = func.jsonb_array_elements_text(Article.ai_analysis["tags"]).alias("tag")
-
-        intersection_count_subquery = (
-            select(func.count())
-            .select_from(tags_unnested)
-            .where(tags_unnested.c.tag.in_(query_tags_set))
-            .scalar_subquery()
+        result = await self.session.execute(
+            sql,
+            {
+                "query_tags": query_tags_list,
+                "query_len": query_len,
+                "limit": limit
+            }
         )
 
-        doc_len_expr = func.jsonb_array_length(Article.ai_analysis["tags"])
-
-        min_len_expr = func.least(query_len, doc_len_expr)
-
-        overlap_score_expr = case(
-            (min_len_expr > 0, cast(intersection_count_subquery, Float) / cast(min_len_expr, Float)),
-            else_=0.0
-        ).label("overlap_score")
-
-        stmt = (
-            select(Article, overlap_score_expr)
-            .where(pre_filter)
-            .order_by(desc(overlap_score_expr))
-            .limit(limit)
-        )
-
-        result = await self.session.execute(stmt)
         articles_with_scores = []
-
         for row in result:
-            article = row[0]
-            score = row[1]
+            article = Article(
+                id=row.id,
+                title=row.title,
+                content=row.content,
+                source=row.source,
+                url=row.url,
+                publication_date=row.publication_date,
+                ai_analysis=row.ai_analysis,
+                created_at=row.created_at,
+                updated_at=row.updated_at
+            )
+            score = row.overlap_score
             if score >= threshold:
                 articles_with_scores.append((article, score))
 
