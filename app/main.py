@@ -8,14 +8,23 @@ from app.core.config import settings
 from app.api.api_v1 import api_router
 from app.db.session import engine
 
+from app.core.logging_config import setup_logging, get_logger
+
+setup_logging(level="INFO" if settings.ENVIRONMENT == "prod" else "DEBUG")
+logger = get_logger("main")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    logger.info("Starting WeMood Backend...")
     async with engine.begin() as conn:
         await conn.execute(text("SELECT 1"))
+    logger.info("Database connection established")
 
     yield
 
+    logger.info("Shutting down WeMood Backend...")
     await engine.dispose()
+    logger.info("Database connection closed")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

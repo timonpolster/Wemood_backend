@@ -5,6 +5,10 @@ from app.models.article import Article
 from app.repositories.article_repo import ArticleRepository
 from app.services.mistral_service import MistralService
 
+from app.core.logging_config import get_logger
+
+logger = get_logger("services.tagging")
+
 class TaggingService:
     def __init__(self, article_repo: ArticleRepository, mistral_service: MistralService):
         self.article_repo = article_repo
@@ -13,13 +17,19 @@ class TaggingService:
         self.min_summary_length = 20
 
     async def process_article_pipeline(self, article_in: ArticleCreate) -> Article:
+        logger.info(f"Processing article: {article_in.title[:50]}...")
+
         self._validate_content_suitability(article_in.content)
+        logger.debug("Content validation passed")
 
         analysis_result = await self._perform_ai_analysis(article_in.title, article_in.content)
+        logger.debug(f"AI analysis complete: {len(analysis_result.tags)} tags generated")
 
         self._enforce_quality_standards(analysis_result)
+        logger.debug(f"Quality standards passed (confidence: {analysis_result.confidence_score})")
 
         created_article = await self.article_repo.create_with_ai_analysis(article_in, analysis_result)
+        logger.info(f"Article created with ID: {created_article.id}")
 
         return created_article
 

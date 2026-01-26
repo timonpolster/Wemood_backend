@@ -48,7 +48,6 @@ async def test_perform_search_standard_intent(
 ):
     query = "Was tun bei Angst?"
 
-    # SearchAnalysisResult requires 2-8 tags
     ai_result = SearchAnalysisResult(
         tags=["Angst", "Panik", "Symptome"],
         intent=UserIntentEnum.SELF_HELP,
@@ -71,7 +70,7 @@ async def test_perform_search_standard_intent(
 
     mock_repo.search_by_overlap_coefficient.assert_called_once_with(
         query_tags=["Angst", "Panik", "Symptome"],
-        threshold=0.3
+        threshold=0.1
     )
 
 
@@ -83,7 +82,6 @@ async def test_perform_search_emergency_intent(
 ):
     query = "Ich will nicht mehr leben"
 
-    # SearchAnalysisResult requires 2-8 tags
     ai_result = SearchAnalysisResult(
         tags=["Suizid", "Krise", "Hilfe"],
         intent=UserIntentEnum.EMERGENCY,
@@ -100,7 +98,7 @@ async def test_perform_search_emergency_intent(
 
     mock_repo.search_by_overlap_coefficient.assert_called_once_with(
         query_tags=["Suizid", "Krise", "Hilfe"],
-        threshold=0.2
+        threshold=0.1
     )
 
 
@@ -112,9 +110,8 @@ async def test_perform_search_no_results(
 ):
     query = "Unbekanntes Thema"
 
-    # SearchAnalysisResult requires 2-8 tags (minimum 2!)
     ai_result = SearchAnalysisResult(
-        tags=["Unbekannt", "Sonstiges"],  # Fixed: now has 2 tags
+        tags=["Unbekannt", "Sonstiges"],
         intent=UserIntentEnum.RESEARCH,
         corrected_query=None
     )

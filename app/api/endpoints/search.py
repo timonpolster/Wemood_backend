@@ -1,5 +1,6 @@
-from typing import List, Any, Optional
-from pydantic import BaseModel, Field
+from typing import List, Optional
+from datetime import date
+from pydantic import BaseModel
 from fastapi import APIRouter, Query, status
 from app.api.dependencies import SearchServiceDep
 
@@ -11,7 +12,7 @@ class SearchResultItem(BaseModel):
     summary: str
     category: str
     sentiment: str
-    publication_date: Optional[Any] = None
+    publication_date: Optional[date] = None
     relevance_score: float
     tags: List[str]
 

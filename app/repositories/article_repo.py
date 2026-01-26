@@ -1,8 +1,6 @@
 from typing import List, Optional, Tuple
-from sqlalchemy import select, func, text, desc, case, Float, literal_column
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import cast
-from sqlalchemy.dialects.postgresql import JSONB, ARRAY, TEXT
 
 from app.models.article import Article
 from app.schemas.article import ArticleCreate

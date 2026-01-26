@@ -4,20 +4,30 @@ from app.services.mistral_service import MistralService
 from app.schemas.ai import SearchAnalysisResult, UserIntentEnum
 from app.models.article import Article
 
+from app.core.logging_config import get_logger
+
+logger = get_logger("services.search")
+
 class SearchService:
     def __init__(self, article_repo: ArticleRepository, mistral_service: MistralService):
         self.article_repo = article_repo
         self.mistral_service = mistral_service
 
     async def perform_search(self, user_query: str) -> Dict[str, Any]:
+        logger.info(f"Search request: '{user_query[:50]}...'")
+
         ai_analysis = await self._analyze_query_intent(user_query)
+        logger.debug(f"Intent detected: {ai_analysis.intent}, Tags: {ai_analysis.tags}")
 
         is_emergency = self._check_for_emergency_intent(ai_analysis.intent)
+        if is_emergency:
+            logger.warning(f"EMERGENCY INTENT detected for query: {user_query}")
 
         search_results = await self.article_repo.search_by_overlap_coefficient(
             query_tags=ai_analysis.tags,
             threshold=0.1 if is_emergency else 0.1
         )
+        logger.info(f"Found {len(search_results)} articles")
 
         formatted_results = self._format_search_response(search_results)
 

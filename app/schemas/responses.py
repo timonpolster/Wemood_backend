@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional
 from pydantic import ConfigDict, Field
 from app.schemas.article import ArticleCreate
 from app.schemas.ai import ArticleAnalysisResult
