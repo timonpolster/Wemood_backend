@@ -38,5 +38,5 @@ class SearchResponseWrapper(BaseModel):
 async def search_articles(
         search_service: SearchServiceDep,
         q: str = Query(..., min_length=3, description="The user's search query (e.g., 'Hilfe bei Panikattacken')")
-) -> Any:
+) -> SearchResponseWrapper:
     return await search_service.perform_search(q)
