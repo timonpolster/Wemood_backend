@@ -14,7 +14,7 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     summary="Create and Analyze a new Article",
     description="Submits a new psychological article. Triggers the AI pipeline to generate tags, sentiment, and summary, then saves everything to the database. Requires X-API-Key header.",
-    dependencies=[Depends(validate_api_key)]  # Protected endpoint
+    dependencies=[Depends(validate_api_key)]
 )
 async def create_article(
         article_in: ArticleCreate,
