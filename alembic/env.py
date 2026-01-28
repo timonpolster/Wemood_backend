@@ -11,10 +11,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-# Import your models and config
 from app.core.config import settings
 from app.db.base import Base
-from app.models.article import Article  # noqa: F401 - Import to register model
+from app.models.article import Article
+from app.models.user import User
 
 # Alembic Config object
 config = context.config

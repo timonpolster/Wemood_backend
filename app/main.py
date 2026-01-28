@@ -37,10 +37,7 @@ app = FastAPI(
 if settings.ENVIRONMENT == "dev":
     allow_origins = ["*"]
 else:
-    allow_origins = [
-        "https://wemood.at",
-        "https://www.wemood.at"
-    ]
+    allow_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,

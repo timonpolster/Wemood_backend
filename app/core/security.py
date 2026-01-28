@@ -1,44 +1,34 @@
 import secrets
-from fastapi import Security, HTTPException, status
+from fastapi import Security, HTTPException, status, Depends
 from fastapi.security.api_key import APIKeyHeader
+from fastapi.security import OAuth2PasswordBearer
 from app.core.config import settings
+from app.core.jwt import verify_token
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
 
 async def validate_api_key(
         api_key_header_val: str = Security(api_key_header),
 ) -> str:
-    """
-    Validates the API key from X-API-Key header.
-    
-    In development mode (ENVIRONMENT=dev), if ADMIN_API_KEY is not set,
-    authentication is bypassed for convenience.
-    
-    In production mode, ADMIN_API_KEY must be set and all requests
-    must include a valid X-API-Key header.
-    """
     admin_token = settings.ADMIN_API_KEY
-    
-    # Dev bypass: Skip auth if no ADMIN_API_KEY is configured in dev environment
+
     if not admin_token and settings.ENVIRONMENT == "dev":
         return "dev-bypass"
-    
-    # Production check: ADMIN_API_KEY must be set
+
     if not admin_token:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Server Misconfiguration: ADMIN_API_KEY not set."
         )
-    
-    # Validate that header was provided
+
     if not api_key_header_val:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Missing API Key. Please provide X-API-Key header."
         )
-    
-    # Constant-time comparison to prevent timing attacks
+
     if not secrets.compare_digest(api_key_header_val, admin_token):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -46,3 +36,22 @@ async def validate_api_key(
         )
 
     return api_key_header_val
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    payload = verify_token(token)
+    if payload is None:
+        raise credentials_exception
+    
+    username: str = payload.sub
+    if username is None:
+        raise credentials_exception
+    
+    return username

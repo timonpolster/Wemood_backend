@@ -22,7 +22,11 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "wemood_db"
 
     MISTRAL_API_KEY: str
-    ADMIN_API_KEY: Optional[str] = None  # Required in production, optional in dev
+    ADMIN_API_KEY: Optional[str] = None
+
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 Tag
 
     @computed_field
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:

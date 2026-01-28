@@ -1,0 +1,75 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: wemood_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wemood_internal
+
+  backend:
+    build:
+      context: ../../Downloads/WeMood_Backend_Production/Wemood_backend-master
+      dockerfile: ../../Downloads/WeMood_Backend_Production/Wemood_backend-master/Dockerfile
+    container_name: wemood_api
+    restart: always
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        python -m app.backend_pre_start &&
+        echo 'Running database migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting production server...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+      "
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+      - ENVIRONMENT=prod
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wemood_internal
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: wemood_caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+    networks:
+      - wemood_internal
+
+volumes:
+  postgres_data:
+    name: wemood_postgres_data
+  caddy_data:
+    name: wemood_caddy_data
+  caddy_config:
+    name: wemood_caddy_config
+
+networks:
+  wemood_internal:
+    name: wemood_network
+    driver: bridge
