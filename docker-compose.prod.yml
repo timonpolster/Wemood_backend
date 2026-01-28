@@ -18,9 +18,7 @@ services:
       - wemood_internal
 
   backend:
-    build:
-      context: ../../Downloads/WeMood_Backend_Production/Wemood_backend-master
-      dockerfile: ../../Downloads/WeMood_Backend_Production/Wemood_backend-master/Dockerfile
+    build: .
     container_name: wemood_api
     restart: always
     command: >
@@ -34,7 +32,6 @@ services:
       "
     environment:
       - POSTGRES_SERVER=db
-      - POSTGRES_PORT=5432
       - ENVIRONMENT=prod
       - PYTHONPATH=/app
     env_file:
@@ -63,13 +60,9 @@ services:
 
 volumes:
   postgres_data:
-    name: wemood_postgres_data
   caddy_data:
-    name: wemood_caddy_data
   caddy_config:
-    name: wemood_caddy_config
 
 networks:
   wemood_internal:
-    name: wemood_network
     driver: bridge
