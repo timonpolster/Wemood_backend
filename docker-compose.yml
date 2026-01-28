@@ -17,6 +17,18 @@ services:
     networks:
       - wemood_internal
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: wemood_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@wemood.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - wemood_internal
+
   backend:
     build: .
     container_name: wemood_api
