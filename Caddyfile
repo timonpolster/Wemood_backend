@@ -1,6 +1,4 @@
-:443 {
-    tls internal
-
+wemooddb.duckdns.org {
     reverse_proxy backend:8000
 
     header {
@@ -15,8 +13,4 @@
             output stdout
             format console
         }
-}
-
-:80 {
-    redir https://{host}{uri} permanent
 }
