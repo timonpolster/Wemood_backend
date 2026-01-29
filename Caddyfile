@@ -1,4 +1,4 @@
-wemooddb.duckdns.org {
+164-92-243-35.sslip.io {
     reverse_proxy backend:8000
 
     header {
