@@ -40,7 +40,7 @@ docker-compose*.yml
 .docker
 
 *.md
-!../../Downloads/WeMood_Backend_Production/Wemood_backend-master/README.md
+!README.md
 
 .env
 .env.*
