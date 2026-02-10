@@ -133,10 +133,13 @@ class ArticleRepository:
                              AND :query_len > 0
                         THEN (
                             SELECT COUNT(DISTINCT doc_tag)::float
-                            FROM jsonb_array_elements_text(a.ai_analysis->'tags') AS doc_tag,
-                                 unnest(:query_tags::text[]) AS search_tag
-                            WHERE LOWER(doc_tag) LIKE '%' || search_tag || '%'
-                               OR search_tag LIKE '%' || LOWER(doc_tag) || '%'
+                            FROM jsonb_array_elements_text(a.ai_analysis->'tags') AS doc_tag
+                            WHERE EXISTS (
+                                SELECT 1 
+                                FROM unnest(CAST(:query_tags AS text[])) AS search_tag
+                                WHERE LOWER(doc_tag) LIKE '%%' || search_tag || '%%'
+                                   OR search_tag LIKE '%%' || LOWER(doc_tag) || '%%'
+                            )
                         ) / LEAST(:query_len, jsonb_array_length(a.ai_analysis->'tags'))::float
                         ELSE 0.0
                     END AS partial_tag_score
