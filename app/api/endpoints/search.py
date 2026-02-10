@@ -24,16 +24,41 @@ class SearchMetadata(BaseModel):
     is_emergency_context: bool
     result_count: int
 
+class EmergencyHotline(BaseModel):
+    name: str
+    number: str
+    description: str
+    url: Optional[str] = None
+
+class EmergencyOnlineHelp(BaseModel):
+    name: str
+    url: str
+    description: str
+
+class EmergencyResources(BaseModel):
+    hotlines: List[EmergencyHotline]
+    online_help: List[EmergencyOnlineHelp]
+    message: str
+
 class SearchResponseWrapper(BaseModel):
     metadata: SearchMetadata
     results: List[SearchResultItem]
+    emergency_resources: Optional[EmergencyResources] = None
 
 @router.get(
     "/",
     response_model=SearchResponseWrapper,
     status_code=status.HTTP_200_OK,
     summary="Semantic Search with AI Analysis",
-    description="Analyzes the user's search query using Mistral AI to extract intent and semantic tags. Performs an overlap-coefficient search on the database. Returns ranked articles and metadata about the query interpretation (including emergency detection)."
+    description="""
+                    Analyzes the user's search query using Mistral AI to extract intent and semantic tags.
+                    Performs an overlap-coefficient search on the database.
+                    Returns ranked articles and metadata about the query interpretation.
+
+                    **Emergency Detection:**
+                    If the query indicates a potential crisis (suicidal ideation, self-harm), 
+                    the response will include `emergency_resources` with German crisis hotlines and online help.
+                """
 )
 async def search_articles(
         search_service: SearchServiceDep,

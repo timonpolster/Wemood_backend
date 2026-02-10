@@ -8,6 +8,47 @@ from app.core.logging_config import get_logger
 
 logger = get_logger("services.search")
 
+EMERGENCY_RESOURCES = {
+    "hotlines": [
+        {
+            "name": "Telefonseelsorge Österreich",
+            "number": "142",
+            "description": "Kostenlos, 24/7 erreichbar",
+            "url": "https://www.telefonseelsorge.at"
+        },
+        {
+            "name": "Rat auf Draht",
+            "number": "147",
+            "description": "Kostenlos, 24/7. für Kinder, Jugendliche und deren Bezugspersonen",
+            "url": "https://www.rataufdraht.at"
+        },
+        {
+            "name": "Psychiatrische Soforthilfe Wien",
+            "number": "01 31330",
+            "description": "24/7 erreichbar",
+            "url": "https://www.psd-wien.at"
+        }
+    ],
+    "online_help": [
+        {
+            "name": "Telefonseelsorge Online",
+            "url": "https://onlineberatung.telefonseelsorge.at",
+            "description": "Chat und Mail-Beratung"
+        },
+        {
+            "name": "Bitte lebe!",
+            "url": "https://www.bittelebe.at",
+            "description": "Suizidprävention Österreich"
+        },
+        {
+            "name": "Rat auf Draht Online",
+            "url": "https://www.rataufdraht.at/online-beratung",
+            "description": "Chat-Beratung für Jugendliche"
+        }
+    ],
+    "message": "Wenn du dich in einer akuten Krise befindest, wende dich bitte an professionelle Hilfe. Du bist nicht allein."
+}
+
 class SearchService:
     def __init__(self, article_repo: ArticleRepository, mistral_service: MistralService):
         self.article_repo = article_repo
@@ -23,15 +64,19 @@ class SearchService:
         if is_emergency:
             logger.warning(f"EMERGENCY INTENT detected for query: {user_query}")
 
+        search_threshold = 0.05 if is_emergency else 0.1
+        search_limit = 20 if is_emergency else 15
+
         search_results = await self.article_repo.search_by_overlap_coefficient(
             query_tags=ai_analysis.tags,
-            threshold=0.1 if is_emergency else 0.1
+            threshold=search_threshold,
+            limit=search_limit
         )
         logger.info(f"Found {len(search_results)} articles")
 
         formatted_results = self._format_search_response(search_results)
 
-        return {
+        response = {
             "metadata": {
                 "original_query": user_query,
                 "corrected_query": ai_analysis.corrected_query,
@@ -42,6 +87,12 @@ class SearchService:
             },
             "results": formatted_results
         }
+
+        if is_emergency:
+            response["emergency_resources"] = EMERGENCY_RESOURCES
+            logger.info("Emergency resources added to response")
+
+        return response
 
     async def _analyze_query_intent(self, query: str) -> SearchAnalysisResult:
         return await self.mistral_service.analyze_search_query(query)

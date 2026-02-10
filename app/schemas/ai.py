@@ -19,9 +19,9 @@ class ArticleAnalysisResult(BaseModel):
 
     tags: List[str] = Field(
         ...,
-        min_length=15,
-        max_length=40,
-        description="Eine umfangreiche Liste von 15 bis 40 psychologischen Fachbegriffen, Synonymen und Themen, die den Text detailliert beschreiben."
+        min_length=20,
+        max_length=50,
+        description="Eine umfangreiche Liste von 20 bis 50 psychologischen Fachbegriffen, Synonymen, verwandten Begriffen und Themen, die den Text detailliert beschreiben."
     )
 
     scientific_disciplines: List[str] = Field(
@@ -49,9 +49,9 @@ class SearchAnalysisResult(BaseModel):
 
     tags: List[str] = Field(
         ...,
-        min_length=2,
-        max_length=8,
-        description="Eine präzise Auswahl von 2 bis 8 Suchbegriffen, die die Absicht des Nutzers am besten repräsentieren."
+        min_length=8,
+        max_length=15,
+        description="Eine umfassende Auswahl von 8 bis 15 Suchbegriffen inkl. Synonymen, verwandten Begriffen und Ober-/Unterkategorien, um die Trefferquote zu maximieren."
     )
 
     intent: UserIntentEnum = Field(

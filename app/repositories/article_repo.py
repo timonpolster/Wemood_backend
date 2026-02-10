@@ -81,13 +81,13 @@ class ArticleRepository:
         return True
 
     async def search_by_overlap_coefficient(
-            self, query_tags: List[str], limit: int = 10, threshold: float = 0.3
+            self, query_tags: List[str], limit: int = 15, threshold: float = 0.1
     ) -> List[Tuple[Article, float]]:
         if not query_tags:
             return []
 
-        query_tags_list = list(set(query_tags))
-        query_len = len(query_tags_list)
+        query_tags_normalized = list(set(tag.lower().strip() for tag in query_tags))
+        query_len = len(query_tags_normalized)
 
         sql = text("""
             SELECT
@@ -97,12 +97,13 @@ class ArticleRepository:
                     THEN (
                         SELECT COUNT(*)::float
                         FROM jsonb_array_elements_text(a.ai_analysis->'tags') AS doc_tag
-                        WHERE doc_tag = ANY(:query_tags)
+                        WHERE LOWER(doc_tag) = ANY(:query_tags)
                     ) / LEAST(:query_len, jsonb_array_length(a.ai_analysis->'tags'))::float
                     ELSE 0.0
                 END AS overlap_score
             FROM articles a
-            WHERE a.ai_analysis->'tags' ?| :query_tags
+            WHERE a.ai_analysis->'tags' IS NOT NULL
+              AND jsonb_array_length(a.ai_analysis->'tags') > 0
             ORDER BY overlap_score DESC
             LIMIT :limit
         """)
@@ -110,7 +111,7 @@ class ArticleRepository:
         result = await self.session.execute(
             sql,
             {
-                "query_tags": query_tags_list,
+                "query_tags": query_tags_normalized,
                 "query_len": query_len,
                 "limit": limit
             }
