@@ -64,13 +64,15 @@ class SearchService:
         if is_emergency:
             logger.warning(f"EMERGENCY INTENT detected for query: {user_query}")
 
-        search_threshold = 0.05 if is_emergency else 0.1
-        search_limit = 20 if is_emergency else 15
+        search_config = self._get_search_config(is_emergency)
 
-        search_results = await self.article_repo.search_by_overlap_coefficient(
+        search_results = await self.article_repo.hybrid_search(
+            query_text=ai_analysis.corrected_query or user_query,
             query_tags=ai_analysis.tags,
-            threshold=search_threshold,
-            limit=search_limit
+            limit=search_config["limit"],
+            fulltext_weight=search_config["fulltext_weight"],
+            tag_weight=search_config["tag_weight"],
+            min_score=search_config["min_score"]
         )
         logger.info(f"Found {len(search_results)} articles")
 
@@ -83,7 +85,8 @@ class SearchService:
                 "detected_intent": ai_analysis.intent,
                 "used_tags": ai_analysis.tags,
                 "is_emergency_context": is_emergency,
-                "result_count": len(formatted_results)
+                "result_count": len(formatted_results),
+                "search_strategy": "hybrid"
             },
             "results": formatted_results
         }
@@ -94,15 +97,35 @@ class SearchService:
 
         return response
 
+    def _get_search_config(self, is_emergency: bool) -> Dict[str, Any]:
+
+        if is_emergency:
+            return {
+                "limit": 25,
+                "fulltext_weight": 0.5,
+                "tag_weight": 0.5,
+                "min_score": 0.005
+            }
+        else:
+            return {
+                "limit": 20,
+                "fulltext_weight": 0.4,
+                "tag_weight": 0.6,
+                "min_score": 0.01
+            }
+
     async def _analyze_query_intent(self, query: str) -> SearchAnalysisResult:
         return await self.mistral_service.analyze_search_query(query)
 
     def _check_for_emergency_intent(self, intent: UserIntentEnum) -> bool:
         return intent == UserIntentEnum.EMERGENCY
 
-    def _format_search_response(self, results: List[Tuple[Article, float]]) -> List[Dict[str, Any]]:
+    def _format_search_response(
+            self, 
+            results: List[Tuple[Article, float, dict]]
+    ) -> List[Dict[str, Any]]:
         formatted = []
-        for article, score in results:
+        for article, combined_score, score_breakdown in results:
             article_data = {
                 "id": article.id,
                 "title": article.title,
@@ -110,7 +133,8 @@ class SearchService:
                 "category": article.ai_analysis.get("category", "Unknown"),
                 "sentiment": article.ai_analysis.get("sentiment", "neutral"),
                 "publication_date": article.publication_date,
-                "relevance_score": round(score, 2),
+                "relevance_score": round(combined_score, 3),
+                "score_breakdown": score_breakdown,
                 "tags": article.ai_analysis.get("tags", [])
             }
             formatted.append(article_data)

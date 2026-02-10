@@ -6,6 +6,13 @@ from app.api.dependencies import SearchServiceDep
 
 router = APIRouter()
 
+class ScoreBreakdown(BaseModel):
+    """breakdown of the relevance score for testeing"""
+    fulltext_score: float
+    tag_score: float
+    partial_tag_score: float
+    combined_score: float
+
 class SearchResultItem(BaseModel):
     id: int
     title: str
@@ -14,6 +21,7 @@ class SearchResultItem(BaseModel):
     sentiment: str
     publication_date: Optional[date] = None
     relevance_score: float
+    score_breakdown: Optional[ScoreBreakdown] = None
     tags: List[str]
 
 class SearchMetadata(BaseModel):
@@ -23,6 +31,7 @@ class SearchMetadata(BaseModel):
     used_tags: List[str]
     is_emergency_context: bool
     result_count: int
+    search_strategy: str = "hybrid"
 
 class EmergencyHotline(BaseModel):
     name: str
@@ -49,16 +58,8 @@ class SearchResponseWrapper(BaseModel):
     "/",
     response_model=SearchResponseWrapper,
     status_code=status.HTTP_200_OK,
-    summary="Semantic Search with AI Analysis",
-    description="""
-                    Analyzes the user's search query using Mistral AI to extract intent and semantic tags.
-                    Performs an overlap-coefficient search on the database.
-                    Returns ranked articles and metadata about the query interpretation.
-
-                    **Emergency Detection:**
-                    If the query indicates a potential crisis (suicidal ideation, self-harm), 
-                    the response will include `emergency_resources` with German crisis hotlines and online help.
-                """
+    summary="Hybrid Semantic Search with AI Analysis",
+    description= "AI-powered hybrid search combining full-text and semantic tag matching. Includes emergency detection for Austrian crisis hotlines."
 )
 async def search_articles(
         search_service: SearchServiceDep,
