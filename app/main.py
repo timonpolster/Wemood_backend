@@ -31,13 +31,16 @@ app = FastAPI(
     description="Backend API for WeMood - AI powered psychological search engine using Overlap Coefficient and Mistral AI.",
     version="1.0.0",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
+    redirect_slashes=False
 )
 
-if settings.ENVIRONMENT == "dev":
-    allow_origins = ["*"]
-else:
-    allow_origins = ["*"]
+allow_origins = [
+    "https://207.154.244.140.sslip.io",
+    "https://207-154-244-140.sslip.io",
+    "https://wemoodfrontend.vercel.app",
+    "http://localhost:5173"
+]
 
 app.add_middleware(
     CORSMiddleware,
