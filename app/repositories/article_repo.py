@@ -20,9 +20,12 @@ class ArticleRepository:
         db_obj = Article(
             title=article_in.title,
             content=article_in.content,
-            source=article_in.source,
+            sources=article_in.sources,
             url=article_in.url,
             publication_date=article_in.publication_date,
+            literature=article_in.literature,
+            fazit=article_in.fazit,
+            videos=article_in.videos,
             ai_analysis=ai_data.model_dump(mode="json")
         )
         self.session.add(db_obj)
@@ -36,8 +39,8 @@ class ArticleRepository:
         return result.scalar_one_or_none()
 
     async def get_all(
-            self, 
-            skip: int = 0, 
+            self,
+            skip: int = 0,
             limit: int = 100
     ) -> Tuple[List[Article], int]:
 
@@ -186,9 +189,12 @@ class ArticleRepository:
                     id=row.id,
                     title=row.title,
                     content=row.content,
-                    source=row.source,
+                    sources=row.sources,
                     url=row.url,
                     publication_date=row.publication_date,
+                    literature=row.literature,
+                    fazit=row.fazit,
+                    videos=row.videos,
                     ai_analysis=row.ai_analysis,
                     created_at=row.created_at,
                     updated_at=row.updated_at
@@ -249,9 +255,12 @@ class ArticleRepository:
                 id=row.id,
                 title=row.title,
                 content=row.content,
-                source=row.source,
+                sources=row.sources,
                 url=row.url,
                 publication_date=row.publication_date,
+                literature=row.literature,
+                fazit=row.fazit,
+                videos=row.videos,
                 ai_analysis=row.ai_analysis,
                 created_at=row.created_at,
                 updated_at=row.updated_at
