@@ -55,7 +55,10 @@ async def test_perform_search_standard_intent(
     )
     mock_mistral.analyze_search_query.return_value = ai_result
 
-    mock_repo.search_by_overlap_coefficient.return_value = [(mock_article, 0.85)]
+    mock_repo.hybrid_search.return_value = [(mock_article, 0.85, {
+        "fulltext_score": 0.0, "tag_score": 0.85,
+        "partial_tag_score": 0.0, "combined_score": 0.85
+    })]
 
     result = await search_service.perform_search(query)
 
@@ -68,9 +71,11 @@ async def test_perform_search_standard_intent(
     assert results_list[0]["relevance_score"] == 0.85
     assert results_list[0]["title"] == "Umgang mit Panik"
 
-    mock_repo.search_by_overlap_coefficient.assert_called_once_with(
+    mock_repo.hybrid_search.assert_called_once_with(
+        query_text="Was tun bei Angst?",
         query_tags=["Angst", "Panik", "Symptome"],
-        threshold=0.1
+        limit=20, fulltext_weight=0.4,
+        tag_weight=0.6, min_score=0.01
     )
 
 
@@ -89,16 +94,18 @@ async def test_perform_search_emergency_intent(
     )
     mock_mistral.analyze_search_query.return_value = ai_result
 
-    mock_repo.search_by_overlap_coefficient.return_value = []
+    mock_repo.hybrid_search.return_value = []
 
     result = await search_service.perform_search(query)
 
     assert result["metadata"]["detected_intent"] == UserIntentEnum.EMERGENCY
     assert result["metadata"]["is_emergency_context"] is True
 
-    mock_repo.search_by_overlap_coefficient.assert_called_once_with(
+    mock_repo.hybrid_search.assert_called_once_with(
+        query_text="Ich will nicht mehr leben",
         query_tags=["Suizid", "Krise", "Hilfe"],
-        threshold=0.1
+        limit=25, fulltext_weight=0.5,
+        tag_weight=0.5, min_score=0.005
     )
 
 
@@ -116,7 +123,7 @@ async def test_perform_search_no_results(
         corrected_query=None
     )
     mock_mistral.analyze_search_query.return_value = ai_result
-    mock_repo.search_by_overlap_coefficient.return_value = []
+    mock_repo.hybrid_search.return_value = []
 
     result = await search_service.perform_search(query)
 
