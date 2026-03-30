@@ -25,22 +25,21 @@ def tagging_service(mock_repo, mock_mistral):
 
 @pytest.fixture
 def valid_article_input():
-    # Content needs >= 50 characters (Pydantic) AND >= 50 words (Service)
     return ArticleCreate(
         title="Valid Test Article",
         content="This is a sufficiently long text regarding psychology and mental health treatment. " * 10,
-        source="Test Source"
+        sources=["Test Source"]
     )
 
 
 @pytest.fixture
 def valid_ai_result():
-    # ArticleAnalysisResult requires 15-40 unique tags
     return ArticleAnalysisResult(
         tags=[
             "Psychologie", "Test", "Analyse", "Forschung", "Methodik",
             "Klinische Psychologie", "Diagnose", "Behandlung", "Therapie", "Intervention",
-            "Symptome", "Evaluation", "Prävention", "Verhalten", "Kognition"
+            "Symptome", "Evaluation", "Prävention", "Verhalten", "Kognition",
+            "Emotion", "Persönlichkeit", "Entwicklung", "Resilienz", "Selbstwirksamkeit"
         ],
         scientific_disciplines=["Klinische Psychologie"],
         summary="Eine valide Zusammenfassung des psychologischen Textes mit ausreichender Länge.",
@@ -80,11 +79,10 @@ async def test_process_article_pipeline_success(
 
 @pytest.mark.asyncio
 async def test_process_article_pipeline_content_too_short(tagging_service):
-    # Content has >= 50 characters (passes Pydantic) but < 50 words (fails Service)
     short_article = ArticleCreate(
         title="Short Content Article",
         content="This content is long enough in characters but has too few words for analysis purposes here.",
-        source="Test"
+        sources=["Test"]
     )
 
     with pytest.raises(HTTPException) as exc_info:

@@ -89,7 +89,7 @@ async def create_article(
     Create a new article with AI-powered analysis.
     
     The AI will automatically:
-    - Generate 15-40 semantic tags
+    - Generate 20-50 semantic tags
     - Classify scientific disciplines
     - Create a summary
     - Determine sentiment and category

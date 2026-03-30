@@ -49,7 +49,8 @@ async def test_perform_search_standard_intent(
     query = "Was tun bei Angst?"
 
     ai_result = SearchAnalysisResult(
-        tags=["Angst", "Panik", "Symptome"],
+        tags=["Angst", "Panik", "Symptome", "Angststörung", "Panikattacke",
+              "Selbsthilfe", "Therapie", "Angstbewältigung"],
         intent=UserIntentEnum.SELF_HELP,
         corrected_query="Was tun bei Angst?"
     )
@@ -73,7 +74,8 @@ async def test_perform_search_standard_intent(
 
     mock_repo.hybrid_search.assert_called_once_with(
         query_text="Was tun bei Angst?",
-        query_tags=["Angst", "Panik", "Symptome"],
+        query_tags=["Angst", "Panik", "Symptome", "Angststörung", "Panikattacke",
+                    "Selbsthilfe", "Therapie", "Angstbewältigung"],
         limit=20, fulltext_weight=0.4,
         tag_weight=0.6, min_score=0.01
     )
@@ -88,7 +90,8 @@ async def test_perform_search_emergency_intent(
     query = "Ich will nicht mehr leben"
 
     ai_result = SearchAnalysisResult(
-        tags=["Suizid", "Krise", "Hilfe"],
+        tags=["Suizid", "Suizidgedanken", "Krise", "Krisenintervention",
+              "Hilfe", "Notfall", "Depression", "Suizidprävention"],
         intent=UserIntentEnum.EMERGENCY,
         corrected_query="Ich will nicht mehr leben"
     )
@@ -118,7 +121,8 @@ async def test_perform_search_no_results(
     query = "Unbekanntes Thema"
 
     ai_result = SearchAnalysisResult(
-        tags=["Unbekannt", "Sonstiges"],
+        tags=["Unbekannt", "Sonstiges", "Allgemein", "Information",
+              "Recherche", "Thema", "Psychologie", "Forschung"],
         intent=UserIntentEnum.RESEARCH,
         corrected_query=None
     )

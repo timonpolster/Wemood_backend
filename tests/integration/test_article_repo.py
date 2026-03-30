@@ -5,21 +5,20 @@ from app.schemas.article import ArticleCreate
 from app.schemas.ai import ArticleAnalysisResult, SentimentEnum
 
 
-# Helper function to generate valid tag lists (min 15 required)
 def generate_valid_tags(base_tags: list[str]) -> list[str]:
     """Extends base tags to meet the minimum requirement of 15 tags."""
     filler_tags = [
         "Psychologie", "Intervention", "Behandlung", "Diagnose", "Symptome",
         "Forschung", "Studie", "Analyse", "Methodik", "Evaluation",
-        "Prävention", "Therapie", "Kognition", "Emotion", "Verhalten"
+        "Prävention", "Therapie", "Kognition", "Emotion", "Verhalten",
+        "Resilienz", "Selbstwirksamkeit", "Persönlichkeit", "Entwicklung", "Stress"
     ]
     combined = list(set(base_tags + filler_tags))
-    return combined[:max(15, len(combined))]
+    return combined[:max(20, len(combined))]
 
 
-# Helper function to generate valid content (min 50 chars required)
 def generate_valid_content(topic: str) -> str:
-    """Generates content that meets the minimum 50 character requirement."""
+    """Generates content that meetss the minimum 50 Character requirement"""
     return f"This is a comprehensive psychological article about {topic}. " * 5
 
 
@@ -33,7 +32,7 @@ async def test_create_and_retrieve_article(article_repo: ArticleRepository):
     article_in = ArticleCreate(
         title="Integration Test Article",
         content=generate_valid_content("integration testing"),
-        source="Test DB"
+        sources=["Test DB"]
     )
 
     ai_data = ArticleAnalysisResult(
@@ -61,7 +60,7 @@ async def test_search_overlap_logic(article_repo: ArticleRepository):
     article_in = ArticleCreate(
         title="Panic Attack Guide",
         content=generate_valid_content("panic attacks and anxiety management"),
-        source="Test Source"
+        sources=["Test DB"]
     )
 
     # Create tags that include our search terms plus fillers to meet minimum
@@ -98,7 +97,7 @@ async def test_search_no_overlap(article_repo: ArticleRepository):
     article_in = ArticleCreate(
         title="Depression Study",
         content=generate_valid_content("depression and mood disorders"),
-        source="Test"
+        sources=["Test DB"]
     )
     
     ai_data = ArticleAnalysisResult(

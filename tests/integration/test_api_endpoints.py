@@ -12,12 +12,12 @@ from app.core.config import settings
 def mock_mistral_service():
     mock = AsyncMock()
 
-    # ArticleAnalysisResult requires 15-40 unique tags
     article_result = ArticleAnalysisResult(
         tags=[
             "Integration", "Test", "System", "Database", "API",
             "Backend", "Psychologie", "Analyse", "Forschung", "Methodik",
-            "Klinische Psychologie", "Diagnose", "Behandlung", "Therapie", "Intervention"
+            "Klinische Psychologie", "Diagnose", "Behandlung", "Therapie", "Intervention",
+            "Evaluation", "Prävention", "Symptome", "Kognition", "Verhalten"
         ],
         scientific_disciplines=["Informatik"],
         summary="Integration Test Summary für das Backend-System und die API-Endpunkte.",
@@ -27,9 +27,9 @@ def mock_mistral_service():
     )
     mock.analyze_article.return_value = article_result
 
-    # SearchAnalysisResult requires 2-8 tags
     search_result = SearchAnalysisResult(
-        tags=["Test", "Suche"],
+        tags=["Test", "Suche", "Recherche", "Psychologie",
+              "Information", "Analyse", "Forschung", "Ergebnis"],
         intent=UserIntentEnum.RESEARCH,
         corrected_query="Test Suche"
     )
@@ -45,7 +45,7 @@ async def test_create_article_flow(client: AsyncClient, mock_mistral_service):
     payload = {
         "title": "Integration Test Article",
         "content": "Dies ist ein sehr langer Text der unbedingt für den Integrationstest verwendet werden muss und viele Wörter enthalten sollte. " * 10,
-        "source": "Pytest",
+        "sources": ["Pytest"],
         "url": "http://localhost/test",
         "publication_date": "2024-01-01"  # Date format, not datetime
     }
@@ -73,7 +73,7 @@ async def test_create_article_validation_error(client: AsyncClient):
     payload = {
         "title": "Short Content Article",
         "content": "This content is long enough in characters but has way too few words to pass the service validation check.",
-        "source": "Pytest",
+        "sources": ["Pytest"],
         "url": "http://localhost/fail"
     }
 
