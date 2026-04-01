@@ -106,7 +106,8 @@ async def test_perform_search_emergency_intent(
 
     mock_repo.hybrid_search.assert_called_once_with(
         query_text="Ich will nicht mehr leben",
-        query_tags=["Suizid", "Krise", "Hilfe"],
+        query_tags=["Suizid", "Suizidgedanken", "Krise", "Krisenintervention",
+                    "Hilfe", "Notfall", "Depression", "Suizidprävention"],
         limit=25, fulltext_weight=0.5,
         tag_weight=0.5, min_score=0.005
     )
