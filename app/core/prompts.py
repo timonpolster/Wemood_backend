@@ -1,4 +1,5 @@
 class PromptTemplates:
+    """Zentrale Prompt-Verwaltung für die Mistral-AI-Aufrufe zur Artikel- und Suchanfragen-Analyse."""
 
     # --- SECTION 1: ARTICLE ANALYSIS PROMPTS ---
 
@@ -145,8 +146,10 @@ Tags must be in German.
 
     @staticmethod
     def build_article_prompt(title: str, content: str) -> str:
+        """Baut den User-Prompt für die Artikelanalyse aus Titel und Inhalt."""
         return f"Titel: {title}\nInhalt: {content}"
 
     @staticmethod
     def build_search_prompt(query: str) -> str:
+        """Baut den User-Prompt für die Suchanfragen-Analyse."""
         return f"Suchanfrage: {query}"

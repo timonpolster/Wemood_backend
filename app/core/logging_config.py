@@ -4,6 +4,7 @@ from typing import Optional
 
 
 def setup_logging(level: str = "INFO") -> logging.Logger:
+    """Konfiguriert den Root-Logger mit Console-Output und einheitlichem Format."""
 
     formatter = logging.Formatter(
         fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
@@ -23,6 +24,7 @@ def setup_logging(level: str = "INFO") -> logging.Logger:
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
+    """Gibt einen Child-Logger unter dem 'wemood'-Namespace zurück."""
     if name:
         return logging.getLogger(f"wemood.{name}")
     return logging.getLogger("wemood")

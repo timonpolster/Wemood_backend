@@ -4,6 +4,8 @@ from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    """Zentrale Konfiguration aus Umgebungsvariablen und .env-Datei."""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_ignore_empty=True,
@@ -30,6 +32,7 @@ class Settings(BaseSettings):
 
     @computed_field
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+        """Baut die async PostgreSQL-Connection-URI aus den Einzelwerten zusammen."""
         return MultiHostUrl.build(
             scheme="postgresql+asyncpg",
             username=self.POSTGRES_USER,
