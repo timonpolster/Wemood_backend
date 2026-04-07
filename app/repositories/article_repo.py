@@ -104,7 +104,7 @@ class ArticleRepository:
         query_len = len(query_tags_normalized) if query_tags_normalized else 1
 
         # search query build
-        search_terms = query_text.replace("'", "''") if query_text else ""
+        search_terms = query_text if query_text else ""
 
         sql = text("""
             WITH search_scores AS (
