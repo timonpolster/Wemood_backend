@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base
 
 class Article(Base):
+    """SQLAlchemy-Modell für psychologische Artikel mit KI-Analysedaten."""
+
     __tablename__ = "articles"
 
     __table_args__ = (
