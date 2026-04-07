@@ -5,6 +5,7 @@ from app.schemas.article import ArticleCreate
 from app.schemas.ai import ArticleAnalysisResult
 
 class ArticleResponse(ArticleCreate):
+    """Antwortschema für einen Artikel inkl. ID, KI-Analyse und Zeitstempel."""
     model_config = ConfigDict(from_attributes=True)
 
     id: int = Field(..., description="Die eindeutige ID des Artikels in der Datenbank.")

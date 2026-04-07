@@ -1,3 +1,5 @@
+"""Gemeinsame Test-Fixtures für DB-Session, HTTP-Client und Event-Loop."""
+
 import asyncio
 from typing import AsyncGenerator, Generator
 import pytest
@@ -26,12 +28,14 @@ TestingSessionLocal = async_sessionmaker(
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:
+    """Erstellt einen gemeinsamen Event-Loop für alle Tests der Session."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 @pytest.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
+    """Erstellt alle Tabellen vor dem Test und räumt sie danach wieder auf."""
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -44,6 +48,7 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
 @pytest.fixture(scope="function")
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+    """Erzeugt einen async HTTP-Client mit überschriebener DB-Dependency."""
     async def override_get_db():
         yield db_session
 

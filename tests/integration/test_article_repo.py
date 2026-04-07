@@ -1,3 +1,5 @@
+"""Integrationstests für das ArticleRepository (CRUD und Overlap-Suche)."""
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.article_repo import ArticleRepository
@@ -6,7 +8,7 @@ from app.schemas.ai import ArticleAnalysisResult, SentimentEnum
 
 
 def generate_valid_tags(base_tags: list[str]) -> list[str]:
-    """Extends base tags to meet the minimum requirement of 15 tags."""
+    """Erweitert Basis-Tags mit Füll-Tags um das Minimum von 20 Tags zu erreichen."""
     filler_tags = [
         "Psychologie", "Intervention", "Behandlung", "Diagnose", "Symptome",
         "Forschung", "Studie", "Analyse", "Methodik", "Evaluation",
@@ -18,17 +20,19 @@ def generate_valid_tags(base_tags: list[str]) -> list[str]:
 
 
 def generate_valid_content(topic: str) -> str:
-    """Generates content that meetss the minimum 50 Character requirement"""
+    """Generiert Inhalt der das Minimum von 50 Wörtern erfüllt."""
     return f"This is a comprehensive psychological article about {topic}. " * 5
 
 
 @pytest.fixture
 def article_repo(db_session: AsyncSession):
+    """Erzeugt ein ArticleRepository mit der Test-DB-Session."""
     return ArticleRepository(db_session)
 
 
 @pytest.mark.asyncio
 async def test_create_and_retrieve_article(article_repo: ArticleRepository):
+    """Testet Artikel-Erstellung mit KI-Daten und anschließenden Abruf per ID."""
     article_in = ArticleCreate(
         title="Integration Test Article",
         content=generate_valid_content("integration testing"),
@@ -57,6 +61,7 @@ async def test_create_and_retrieve_article(article_repo: ArticleRepository):
 
 @pytest.mark.asyncio
 async def test_search_overlap_logic(article_repo: ArticleRepository):
+    """Testet dass die Overlap-Suche Artikel mit übereinstimmenden Tags findet."""
     article_in = ArticleCreate(
         title="Panic Attack Guide",
         content=generate_valid_content("panic attacks and anxiety management"),
@@ -94,12 +99,13 @@ async def test_search_overlap_logic(article_repo: ArticleRepository):
 
 @pytest.mark.asyncio
 async def test_search_no_overlap(article_repo: ArticleRepository):
+    """Testet dass bei komplett unverwandten Tags keine Ergebnisse zurückkommen."""
     article_in = ArticleCreate(
         title="Depression Study",
         content=generate_valid_content("depression and mood disorders"),
         sources=["Test DB"]
     )
-    
+
     ai_data = ArticleAnalysisResult(
         tags=generate_valid_tags(["Depression", "Traurigkeit", "Stimmung"]),
         scientific_disciplines=["Klinische Psychologie"],

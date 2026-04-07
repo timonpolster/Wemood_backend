@@ -1,3 +1,5 @@
+"""Unit-Tests für den TaggingService (Pipeline, Validierung, Qualitätsprüfung)."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from fastapi import HTTPException
@@ -10,21 +12,25 @@ from app.models.article import Article
 
 @pytest.fixture
 def mock_repo():
+    """Erzeugt ein gemocktes ArticleRepository."""
     return AsyncMock()
 
 
 @pytest.fixture
 def mock_mistral():
+    """Erzeugt einen gemockten MistralService."""
     return AsyncMock()
 
 
 @pytest.fixture
 def tagging_service(mock_repo, mock_mistral):
+    """Erzeugt einen TaggingService mit gemockten Abhängigkeiten."""
     return TaggingService(article_repo=mock_repo, mistral_service=mock_mistral)
 
 
 @pytest.fixture
 def valid_article_input():
+    """Erzeugt einen validen ArticleCreate-Input für Tests."""
     return ArticleCreate(
         title="Valid Test Article",
         content="This is a sufficiently long text regarding psychology and mental health treatment. " * 10,
@@ -34,6 +40,7 @@ def valid_article_input():
 
 @pytest.fixture
 def valid_ai_result():
+    """Erzeugt ein valides KI-Analyse-Ergebnis mit hoher Konfidenz."""
     return ArticleAnalysisResult(
         tags=[
             "Psychologie", "Test", "Analyse", "Forschung", "Methodik",
@@ -57,6 +64,7 @@ async def test_process_article_pipeline_success(
         valid_article_input,
         valid_ai_result
 ):
+    """Testet die erfolgreiche Pipeline: Validierung, KI-Analyse und Persistierung."""
     mock_mistral.analyze_article.return_value = valid_ai_result
 
     mock_created_article = Article(id=1, title=valid_article_input.title)
@@ -79,6 +87,7 @@ async def test_process_article_pipeline_success(
 
 @pytest.mark.asyncio
 async def test_process_article_pipeline_content_too_short(tagging_service):
+    """Testet dass Artikel mit weniger als 50 Wörtern abgelehnt werden."""
     short_article = ArticleCreate(
         title="Short Content Article",
         content="This content is long enough in characters but has too few words for analysis purposes here.",
@@ -100,7 +109,8 @@ async def test_process_article_pipeline_low_confidence(
         valid_article_input,
         valid_ai_result
 ):
-    # Create a new AIResult with low confidence (don't modify the fixture)
+    """Testet dass ein KI-Ergebnis unter dem Konfidenz-Schwellenwert abgelehnt wird."""
+    # Create a new AIResult with low confidence
     low_confidence_result = ArticleAnalysisResult(
         tags=valid_ai_result.tags,
         scientific_disciplines=valid_ai_result.scientific_disciplines,

@@ -17,6 +17,7 @@ wait_seconds = 1
     after=after_log(logger, logging.WARN),
 )
 async def init() -> None:
+    """Prüft die Datenbankverbindung mit Retry-Logik bis die DB erreichbar ist."""
     try:
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
@@ -25,6 +26,7 @@ async def init() -> None:
         raise e
 
 async def main() -> None:
+    """Einstiegspunkt für den Pre-Start-Check vor dem Applikationsstart."""
     logger.info("Initializing service")
     await init()
     logger.info("Service finished initializing")

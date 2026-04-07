@@ -15,6 +15,7 @@ logger = get_logger("main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Verwaltet Startup und Shutdown der Applikation inkl. DB-Verbindungsprüfung."""
     logger.info("Starting WeMood Backend...")
     async with engine.begin() as conn:
         await conn.execute(text("SELECT 1"))
@@ -54,6 +55,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 async def health_check():
+    """Gibt den aktuellen Status der Applikation zurück."""
     return {
         "status": "active",
         "environment": settings.ENVIRONMENT,

@@ -1,3 +1,5 @@
+"""Integrationstests für die API-Endpunkte (Articles, Search)."""
+
 import pytest
 from httpx import AsyncClient
 from unittest.mock import AsyncMock
@@ -10,6 +12,7 @@ from app.core.config import settings
 
 @pytest.fixture
 def mock_mistral_service():
+    """Erzeugt einen gemockten MistralService mit vordefinierten Analyse-Ergebnissen."""
     mock = AsyncMock()
 
     article_result = ArticleAnalysisResult(
@@ -40,6 +43,7 @@ def mock_mistral_service():
 
 @pytest.mark.asyncio
 async def test_create_article_flow(client: AsyncClient, mock_mistral_service):
+    """Testet den vollständigen Artikel-Erstellungsflow inkl. KI-Analyse und anschließendem Abruf."""
     app.dependency_overrides[get_mistral_service] = lambda: mock_mistral_service
 
     payload = {
@@ -69,6 +73,7 @@ async def test_create_article_flow(client: AsyncClient, mock_mistral_service):
 
 @pytest.mark.asyncio
 async def test_create_article_validation_error(client: AsyncClient):
+    """Testet dass Artikel mit zu wenig Wörtern vom Service abgelehnt werden (422)."""
     # Content has >= 50 characters (passes Pydantic) but < 50 words (fails Service)
     payload = {
         "title": "Short Content Article",
@@ -85,6 +90,7 @@ async def test_create_article_validation_error(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_search_endpoint(client: AsyncClient, mock_mistral_service):
+    """Testet den Search-Endpoint auf korrekte Metadaten und Struktur."""
     app.dependency_overrides[get_mistral_service] = lambda: mock_mistral_service
 
     response = await client.get(f"{settings.API_V1_STR}/search/?q=Testanfrage")

@@ -3,6 +3,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
 
 class ArticleCreate(BaseModel):
+    """Eingabeschema zum Erstellen eines neuen Artikels."""
     model_config = ConfigDict(from_attributes=True)
 
     title: str = Field(..., min_length=5, max_length=255)
@@ -28,6 +29,7 @@ class ArticleCreate(BaseModel):
 
 
 class ArticleUpdate(BaseModel):
+    """Eingabeschema zum Aktualisieren von Artikel-Metadaten. Alle Felder optional."""
     model_config = ConfigDict(from_attributes=True)
 
     title: Optional[str] = Field(None, min_length=5, max_length=255)

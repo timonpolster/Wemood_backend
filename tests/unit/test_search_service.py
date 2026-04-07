@@ -1,3 +1,5 @@
+"""Unit-Tests für den SearchService (Intent-Erkennung, Emergency-Handling, Ergebnisformatierung)."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from app.services.search_service import SearchService
@@ -7,21 +9,25 @@ from app.models.article import Article
 
 @pytest.fixture
 def mock_repo():
+    """Erzeugt ein gemocktes ArticleRepository."""
     return AsyncMock()
 
 
 @pytest.fixture
 def mock_mistral():
+    """Erzeugt einen gemockten MistralService."""
     return AsyncMock()
 
 
 @pytest.fixture
 def search_service(mock_repo, mock_mistral):
+    """Erzeugt einen SearchService mit gemockten Abhängigkeiten."""
     return SearchService(article_repo=mock_repo, mistral_service=mock_mistral)
 
 
 @pytest.fixture
 def mock_article():
+    """Erzeugt einen Test-Artikel mit KI-Analyse-Daten."""
     article = Article(
         id=101,
         title="Umgang mit Panik",
@@ -46,6 +52,7 @@ async def test_perform_search_standard_intent(
         mock_repo,
         mock_article
 ):
+    """Testet eine normale Self-Help-Suche mit einem Treffer."""
     query = "Was tun bei Angst?"
 
     ai_result = SearchAnalysisResult(
@@ -87,6 +94,7 @@ async def test_perform_search_emergency_intent(
         mock_mistral,
         mock_repo
 ):
+    """Testet dass bei Krisen-Intent die Emergency-Suchkonfiguration verwendet wird."""
     query = "Ich will nicht mehr leben"
 
     ai_result = SearchAnalysisResult(
@@ -119,6 +127,7 @@ async def test_perform_search_no_results(
         mock_mistral,
         mock_repo
 ):
+    """Testet dass bei fehlenden Treffern eine leere Ergebnisliste zurückkommt."""
     query = "Unbekanntes Thema"
 
     ai_result = SearchAnalysisResult(

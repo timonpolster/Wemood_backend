@@ -3,18 +3,21 @@ from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict
 
 class SentimentEnum(str, Enum):
+    """Mögliche Sentiment-Werte eines analysierten Artikels."""
     POSITIVE = "positive"
     NEUTRAL = "neutral"
     NEGATIVE = "negative"
     CONCERN = "concern"
 
 class UserIntentEnum(str, Enum):
+    """Klassifikation der Benutzerabsicht hinter einer Suchanfrage."""
     RESEARCH = "research"
     SELF_HELP = "self_help"
     EMERGENCY = "emergency"
     GENERAL_INFO = "general_info"
 
 class ArticleAnalysisResult(BaseModel):
+    """Schema für das strukturierte Ergebnis der KI-Artikelanalyse."""
     model_config = ConfigDict(from_attributes=True)
 
     tags: List[str] = Field(
@@ -45,6 +48,7 @@ class ArticleAnalysisResult(BaseModel):
 
 
 class SearchAnalysisResult(BaseModel):
+    """Schema für das strukturierte Ergebnis der KI-Suchanfragenanalyse."""
     model_config = ConfigDict(from_attributes=True)
 
     tags: List[str] = Field(
